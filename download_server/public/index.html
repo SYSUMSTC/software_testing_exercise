@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html ng-app="downloadServer">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Download Server</title>
+    <script src="//cdn.bootcss.com/angular.js/1.4.8/angular.min.js"></script>
+    <script src="//cdn.bootcss.com/angular-filter/0.5.8/angular-filter.min.js"></script>
+    <script src="js/app.js"></script>
+    <link href="//cdn.bootcss.com/semantic-ui/2.1.6/semantic.min.css" rel="stylesheet">
+    <style type="text/css">
+      #main {
+        padding-top: 3em;
+      }
+      #tasks .ui.progress {
+        margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main" class="ui container" ng-controller="TaskController as taskController">
+      <div>
+        <div class="ui left action input">
+          <button id="add-button" class="ui labeled large compact icon button" ng-click="taskController.add()">
+            Add
+            <i class="plus icon"></i>
+          </button>
+          <input id="url-input" type="text" placeholder="Url to download...", ng-model="taskController.newUrl">
+        </div>
+        <button id="stop-button" class="large ui compact labeled icon button" ng-click="taskController.stop()">
+          Stop
+          <i class="remove icon"></i>
+        </button>
+        <button id="resume-button" class="large ui compact labeled icon button" ng-click="taskController.resume()">
+          Start
+          <i class="play icon"></i>
+        </button>
+        <button id="pause-button" class="large ui compact labeled icon button" ng-click="taskController.pause()">
+          Pause
+          <i class="pause icon"></i>
+        </button>
+      </div>
+
+      <table id="tasks" class="ui celled table">
+        <thead>
+          <tr>
+            <th class="collapsing"></th>
+            <th class="four wide">Filename</th>
+            <th class="one wide">Status</th>
+            <th class="two wide">Speed</th>
+            <th>Progress</th>
+            <th class="two wide">Total</th>
+            <th class="two wide">Downloaded</th>
+            <th class="two wide">Time left</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="task in taskController.tasks" class="{{getStatusClass(task.status)}}">
+            <td>
+              <div class="ui fitted checkbox">
+                <input class="task-checkbox" type="checkbox" ng-model="task.selected">
+                <label></label>
+              </div>
+            </td>
+            <td><a class="task-filename" href="/download/{{task.filename}}">{{task.filename}}</a></td>
+            <td class="task-status">{{task.status}}</td>
+            <td class="task-speed">{{task.downloadSpeed | byteFmt: 2}}/s</td>
+            <td>
+              <div class="ui green progress">
+                <div class="bar task-progress" style="width: {{100 * task.completedLength / task.totalLength}}%;">
+                </div>
+              </div>
+            </td>
+            <td class="task-total">{{task.totalLength | byteFmt: 2}}</td>
+            <td class="task-completed">{{task.completedLength | byteFmt: 2}}</td>
+            <td class="task-eta">{{(task.eta | number: 0) || 'N/A'}} s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
