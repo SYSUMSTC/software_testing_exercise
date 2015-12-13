@@ -18,9 +18,10 @@ class TaskHandler(tornado.web.RequestHandler):
     For more details about aria2's RPCs, see
     http://aria2.sourceforge.net/manual/en/html/aria2c.html#rpc-interface"""
 
-    def initialize(self, rpc, token):
+    def initialize(self, rpc, token, download_file_dir):
         self._rpc = rpc
         self._token = 'token:' + token
+        self._download_file_dir = download_file_dir
 
     def get(self):
         """Gets tasks details.
@@ -77,7 +78,7 @@ class TaskHandler(tornado.web.RequestHandler):
         else:  # create a task
             url = params.get('url')
             self.write(self._rpc.aria2.addUri(
-                self._token, [url], {'dir': config.DOWNLOAD_FILE_DIR}))
+                self._token, [url], {'dir': self._download_file_dir}))
 
     def delete(self):
         """Stops a given task.
@@ -140,13 +141,14 @@ def create_downloader_rpc_stub(address=None):
                                      allow_none=True)
 
 
-def create_app(aria2_token, rpc=None):
+def create_app(aria2_token, download_file_dir, rpc=None):
     """Creates a tornado application."""
     rpc = rpc or create_downloader_rpc_stub()
     return tornado.web.Application([
-        ('/task', TaskHandler, {'rpc': rpc, 'token': aria2_token}),
+        ('/task', TaskHandler, {'rpc': rpc, 'token': aria2_token,
+                                'download_file_dir': download_file_dir}),
         ('/download/(.*)', tornado.web.StaticFileHandler,
-         {'path': config.DOWNLOAD_FILE_DIR}),
+         {'path': download_file_dir}),
         ('/(.*)', tornado.web.StaticFileHandler,
          {'path': config.PUBLIC_FILE_DIR, 'default_filename': 'index.html'}),
     ], **config.TORNADO_APP_SETTINGS)

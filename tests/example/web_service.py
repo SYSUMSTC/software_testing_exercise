@@ -1,4 +1,5 @@
 import os
+import tempfile
 import unittest
 from subprocess import Popen
 from unittest import mock
@@ -28,7 +29,8 @@ class TestTaskHandler(AsyncHTTPTestCase):
 
     def get_app(self):
         self.mock_rpc = mock.MagicMock()
-        return web_service.create_app('aria2_token', self.mock_rpc)
+        return web_service.create_app(
+            'aria2_token', 'download_dir', self.mock_rpc)
 
     def tearDown(self):
         super().tearDown()
@@ -45,19 +47,17 @@ class TestTaskHandler(AsyncHTTPTestCase):
 class TestE2E(unittest.TestCase):
 
     def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+
         import run
-        self.server = Popen(run.__file__)
+        self.server = Popen([run.__file__, '--run', self.tmp_dir.name])
         self.webdriver = webdriver.Firefox()
 
     def tearDown(self):
         self.webdriver.quit()
         self.server.terminate()
         self.server.wait()
-        try:
-            os.remove(os.path.join(
-                web_service.config.DOWNLOAD_FILE_DIR, '1024'))
-        except OSError:
-            pass
+        self.tmp_dir.cleanup()
 
     def test_add_task(self):
         self.webdriver.get('http://localhost:8000')
