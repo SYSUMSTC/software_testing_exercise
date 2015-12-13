@@ -1,0 +1,39 @@
+language: python
+python:
+    - "3.5"
+install:
+    - "./setup.py install"
+before_script:
+    - echo $PATH
+    - wget https://github.com/tatsuhiro-t/aria2/releases/download/release-1.19.3/aria2-1.19.3.tar.bz2 -O /tmp/aria2.tar.bz2
+    - tar -xvf /tmp/aria2.tar.bz2
+    - cd aria2-1.19.3 && ./configure --disable-bittorrent --disable-metalink --prefix=$HOME CC=gcc-5 CXX=g++-5 && make && make install && cd ..
+    - aria2c --version
+cache:
+    directories:
+        - $HOME/aria2-1.19.3
+script:
+    - "pip install coverage"
+    - "coverage run ./setup.py test"
+    - "coverage report"
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - g++-5
+            - libxml2-dev
+            - libcppunit-dev
+            - autoconf
+            - automake
+            - autotools-dev
+            - autopoint
+            - libtool
+            - pkg-config
+            - libgnutls-dev
+            - zlib1g-dev
+            - libc-ares-dev
+    sauce_connect:
+        username: "richardtsai"
+        access_key:
+            secure: "Uv1TXlca0wJszNDe6vVccMtcamoip7s5IyeIohd5p0etzvG6yKrLglYP7uPv3ljz+g5n66zEXqY2MJ+PYGOC9znqEGT2WXyOnPfP/pe4f8rygz6DcyRLmLmIEezn7jYVcIH3w683NNlc/ATgkZ5sbPSruqdfeY4gKDyXQkeHepDEiaOhOqExcv12zM7glyEJKJOqqboE7UZDWyXTR0WIQMEV3tl/SjX2ihAVAgez7mtzGQHS/clejlONPd85HVbaeh0Bedii/8P3kVpiZ5xUH0FJFsb9RUfYdMmw8mQF6IbzBvBU8G8OeXopuAgLiQzZFLC2MYbUJJzrqL4DXfJvrEmfNB9WrWKHL0BEktA+FMYmsXA/dKeS0xrF9W9BPCGuuczARTeCZmIW19SSOsAVenK93AQgCao/9xJWt/Cq2Up5EY54LIwQOpV2GM4Wv5ShKd9dkDenzLzAs/kcpRJ8cBF/AMdLF0/L5fkM6lglUSB2LVmLFXlOkTkWDg3kgSU8A+xw5ioU9zK2fX9QE0C2LXFtuHdIcKkZh50+/+F7uDSEhMjw+3EoF/+yAtwV5F7D4fKQKWbGu4punIVWhyv8tmpMipRhqTDEzKoy/sshZ18XAUXdCSHzhmpaHuoTQQ6bW1Epj20qsBPM1gKFLcMR2rF5tPN/OrtIC2nDDAbT1Cs="

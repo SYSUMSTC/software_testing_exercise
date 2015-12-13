@@ -7,6 +7,7 @@ from unittest import mock
 from tornado.testing import AsyncHTTPTestCase
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support import expected_conditions, wait
 
 from download_server import web_service
@@ -47,11 +48,25 @@ class TestTaskHandler(AsyncHTTPTestCase):
 class TestE2E(unittest.TestCase):
 
     def setUp(self):
-        self.tmp_dir = tempfile.TemporaryDirectory()
-
         import run
+        self.tmp_dir = tempfile.TemporaryDirectory()
         self.server = Popen([run.__file__, '--run', self.tmp_dir.name])
-        self.webdriver = webdriver.Firefox()
+
+        if 'TRAVIS' in os.environ and os.environ['TRAVIS']:  # we are on travis
+            if os.environ['TRAVIS_PULL_REQUEST'] != 'false':
+                self.skipTest('Travis does\'t allow selenium test for PRs')
+
+            wd_url = 'http://{}:{}@localhost:4445/wd/hub'.format(
+                os.environ['SAUCE_USERNAME'], os.environ['SAUCE_ACCESS_KEY']
+            )
+            cap = DesiredCapabilities.FIREFOX.copy()
+            cap['tunnel-identifier'] = os.environ['TRAVIS_JOB_NUMBER']
+            cap['build'] = os.environ["TRAVIS_BUILD_NUMBER"]
+            cap["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
+            self.webdriver = webdriver.Remote(command_executor=wd_url,
+                                              desired_capabilities=cap)
+        else:
+            self.webdriver = webdriver.Firefox()
 
     def tearDown(self):
         self.webdriver.quit()
